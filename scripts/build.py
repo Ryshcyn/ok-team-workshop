@@ -9,6 +9,7 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ("WorkshopTab.py", "manifest.json", "README.md", "NOTICE.md", "LICENSE.txt", "CHANGELOG.md")
+IMAGES = ("docs/images/workshop-list.webp", "docs/images/team-code.webp")
 
 
 def build(tag=None):
@@ -21,12 +22,18 @@ def build(tag=None):
     if manifest.get("custom_tabs") != [["WorkshopTab", "CharacterCodeTab"]] or manifest.get("tasks") != []:
         raise ValueError("Unexpected plugin entry points")
     ast.parse((ROOT / "WorkshopTab.py").read_text(encoding="utf-8"))
+    missing = [name for name in FILES + IMAGES if not (ROOT / name).is_file()]
+    if missing:
+        raise ValueError(f"Missing plugin files: {missing}")
     out = ROOT / "dist"
     out.mkdir(exist_ok=True)
     archive = out / f"ok-team-workshop-{version}.zip"
     with ZipFile(archive, "w", compression=ZIP_DEFLATED, compresslevel=9) as zf:
-        for name in FILES:
-            data = (ROOT / name).read_text(encoding="utf-8-sig").replace("\r\n", "\n").encode("utf-8")
+        for name in FILES + IMAGES:
+            if name.endswith(".webp"):
+                data = (ROOT / name).read_bytes()
+            else:
+                data = (ROOT / name).read_text(encoding="utf-8-sig").replace("\r\n", "\n").encode("utf-8")
             info = ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
             info.compress_type = ZIP_DEFLATED
             info.create_system = 3

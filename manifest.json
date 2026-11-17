@@ -1,7 +1,7 @@
 {
   "file_name": "ok_team_workshop",
   "script_name": "队伍工坊",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "tasks": [],
   "custom_tabs": [["WorkshopTab", "CharacterCodeTab"]]
 }
