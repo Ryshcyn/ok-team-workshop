@@ -42,9 +42,17 @@ from src.char.CustomCharLoader import (
 )
 
 BASE_CHAR_URL = "https://raw.githubusercontent.com/ok-oldking/ok-wuthering-waves/refs/heads/master/src/char/BaseChar.py"
-UPLOAD_TEAM_URL = "https://github.com/ok-oldking/ok-ww-char-code"
-WORKSHOP_TEAMS_ALL_URL = "https://raw.githubusercontent.com/ok-oldking/ok-ww-char-code/main/teams.json"
-WORKSHOP_TEAM_URL = "https://raw.githubusercontent.com/ok-oldking/ok-ww-char-code/main/teams/{slug}.json"
+# The original ok-oldking/ok-ww-char-code repository and its CDN were taken down.
+# These public snapshots are used in order, and the first one that answers wins.
+UPLOAD_TEAM_URL = "https://github.com/yamadafz/ok-ww-char-code"
+WORKSHOP_INDEX_URLS = (
+    "https://raw.githubusercontent.com/yamadafz/ok-ww-char-code/main/teams.json",
+    "https://raw.githubusercontent.com/derek3411888/ok-ww-char-code/main/teams.json",
+)
+WORKSHOP_TEAM_URLS = tuple(
+    url.replace("/teams.json", "/teams/{slug}.json") for url in WORKSHOP_INDEX_URLS)
+WORKSHOP_TEAMS_ALL_URL = WORKSHOP_INDEX_URLS[0]
+WORKSHOP_TEAM_URL = WORKSHOP_TEAM_URLS[0]
 WORKSHOP_ARCHIVE_HOSTS = {"cfokwwchar.ok-script.com", "raw.githubusercontent.com"}
 WORKSHOP_USER_AGENT = "ok-wuthering-waves"
 logger = Logger.get_logger(__name__)
@@ -204,6 +212,7 @@ def translate_ui(message):
             "Keep as Imported Code and Switch": "保存为导入代码并切换",
             "Skipped {count} teams whose current code is not kept as imported code, switch them one by one.": "已跳过 {count} 个当前代码未保存为导入代码的队伍，请逐个切换。",
             "Partially Completed": "部分完成",
+            "Workshop data source is unavailable. The original repository is offline and no mirror responded.": "工坊数据源不可用：原仓库已下线，镜像也没有响应。",
         },
         "zh_TW": {
             "Search by team, character, author or description...": "搜尋隊伍、角色、作者或說明...",
@@ -256,6 +265,7 @@ def translate_ui(message):
             "Keep as Imported Code and Switch": "儲存為匯入程式碼並切換",
             "Skipped {count} teams whose current code is not kept as imported code, switch them one by one.": "已跳過 {count} 個目前程式碼未儲存為匯入程式碼的隊伍，請逐一切換。",
             "Partially Completed": "部分完成",
+            "Workshop data source is unavailable. The original repository is offline and no mirror responded.": "工坊資料來源無法使用：原倉庫已下線，鏡像也沒有回應。",
         },
         "ja_JP": {
             "Search by team, character, author or description...": "チーム、キャラクター、作者、説明を検索...",
@@ -461,26 +471,43 @@ def workshop_team_slug(team):
     return "_".join(names)
 
 
+def workshop_team_urls(team):
+    slug = quote(workshop_team_slug(team), safe="_-")
+    return tuple(url.format(slug=slug) for url in WORKSHOP_TEAM_URLS)
+
+
 def workshop_team_url(team):
-    return WORKSHOP_TEAM_URL.format(slug=quote(workshop_team_slug(team), safe="_-"))
+    return workshop_team_urls(team)[0]
+
+
+def fetch_workshop_json(urls, limit):
+    """Return the first JSON object that any of the mirror URLs serves."""
+    failures = []
+    for url in urls:
+        logger.info(f"char code workshop request: {url}")
+        try:
+            with urlopen(Request(url, headers={"User-Agent": WORKSHOP_USER_AGENT}), timeout=15) as response:
+                content = response.read(limit + 1)
+        except HTTPError as error:
+            failures.append(f"{url}: HTTP {error.code}")
+            continue
+        except OSError as error:
+            failures.append(f"{url}: {error}")
+            continue
+        if len(content) > limit:
+            raise ValueError(translate_ui("Workshop response is too large."))
+        try:
+            return json.loads(content.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            failures.append(f"{url}: invalid JSON")
+            continue
+    logger.warning(f"char code workshop sources failed: {failures}")
+    raise ValueError(translate_ui(
+        "Workshop data source is unavailable. The original repository is offline and no mirror responded."))
 
 
 def fetch_all_workshop_teams():
-    url = WORKSHOP_TEAMS_ALL_URL
-    logger.info(f"char code workshop all teams request: {url}")
-    try:
-        with urlopen(Request(url, headers={"User-Agent": WORKSHOP_USER_AGENT}), timeout=15) as response:
-            content = response.read(5_000_001)
-    except HTTPError as error:
-        if error.code == 404:
-            return []
-        raise
-    if len(content) > 5_000_000:
-        raise ValueError(translate_ui("Workshop response is too large."))
-    try:
-        payload = json.loads(content.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError(translate_ui("Workshop returned invalid JSON.")) from error
+    payload = fetch_workshop_json(WORKSHOP_INDEX_URLS, 5_000_000)
     if not isinstance(payload, dict) or not isinstance(payload.get("teams"), list):
         raise ValueError(translate_ui("Workshop response is invalid."))
 
@@ -506,21 +533,7 @@ def fetch_all_workshop_teams():
 
 def fetch_workshop_codes(team):
     expected_members = sorted((get_english_char_name(name) for name in normalize_team(team)), key=str.casefold)
-    url = workshop_team_url(team)
-    logger.info(f"char code workshop request: {url}")
-    try:
-        with urlopen(Request(url, headers={"User-Agent": WORKSHOP_USER_AGENT}), timeout=15) as response:
-            content = response.read(2_000_001)
-    except HTTPError as error:
-        if error.code == 404:
-            return []
-        raise
-    if len(content) > 2_000_000:
-        raise ValueError(translate_ui("Workshop response is too large."))
-    try:
-        payload = json.loads(content.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError(translate_ui("Workshop returned invalid JSON.")) from error
+    payload = fetch_workshop_json(workshop_team_urls(team), 2_000_000)
     if not isinstance(payload, dict) or not isinstance(payload.get("codes"), list):
         raise ValueError(translate_ui("Workshop response is invalid."))
     members = payload.get("members")
