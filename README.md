@@ -19,14 +19,19 @@
 
 ## 安装
 
-> **新版 OK-WW 的插件部署方式**
+> **OK-WW v3.8.4 起「插件」页默认隐藏**
 >
-> - **新安装**：选完插件包后会直接加载，一般不需要重启。
-> - **更新 / 重装**：覆盖已安装的插件时会先进入暂存状态，卡片显示 `Update staged: vX.Y.Z. Restart to apply.`，**重启 OK-WW 后才真正替换**；重启前可点 **Cancel pending change** 取消。
-> - **删除插件**：同样暂存，重启后生效。
-> - 启动时会应用暂存的变更；如果新版本初始化失败，OK-WW 会自动回滚到上一版。
+> v3.8.4（2026-11-17）把 `working/config.py` 里的 `'plugin'` 设为 `False`，左侧不再创建 Plugins 页。已安装的插件仍会加载，只是没有图形入口安装/更新。
+>
+> - **v3.8.3 及更早**：用下面的「从 GitHub / 从 ZIP」通过 Plugins 页安装。
+> - **v3.8.4 及更新**：关闭 OK-WW，把 zip 解压到
+>   `OK-WW 安装目录\data\apps\ok-ww\working\ok_import\ok_team_workshop\`
+>   （先备份旧目录，`manifest.json` 要在目录根下），再启动 OK-WW。
+>   也可以先把 `working\config.py` 的 `'plugin': False` 改成 `True` 恢复 Plugins 页，再按下面方式安装；OK-WW 每次更新都会重置这个文件。
+>
+> **v3.8.4 兼容性**：这一版还移除了 `src/char/CustomCharLoader.py` 和 `CharFactory.apply_team_char_classes`，而队伍工坊依赖这些接口。接口没恢复时插件会加载失败（日志 `ImportError`，页面不出现）；要么使用 v3.8.3，要么把旧版这两个文件恢复回 `working\src\char\`。
 
-**从 GitHub（推荐）**
+**从 GitHub（推荐，需 Plugins 页）**
 
 1. OK-WW → **Plugins** → **Add from GitHub**，填入：
    `https://github.com/Ryshcyn/ok-team-workshop`
@@ -35,17 +40,26 @@
 
 之后插件页会自动检查更新。
 
-**从 ZIP**
+**从 ZIP（需 Plugins 页）**
 
 到 [Releases](https://github.com/Ryshcyn/ok-team-workshop/releases) 下载 zip → **Add from ZIP**。首次安装直接生效；覆盖安装按提示重启。本地 ZIP 安装不会记录 GitHub 来源，不会自动检查更新。
+
+**手动安装（v3.8.4 及更新，无需 Plugins 页）**
+
+1. 到 **Releases** 下载 `ok-team-workshop-<版本>.zip`。
+2. 完全退出 OK-WW。
+3. 备份 `...\working\ok_import\ok_team_workshop`；首次安装则新建该目录。
+4. 把 zip 解压到该目录，确认 `manifest.json` 和 `WorkshopTab.py` 在同一层。
+5. 启动 OK-WW，左侧应出现「队伍工坊」。
 
 不需要额外安装依赖。
 
 ## 更新与删除
 
-- 有新版本时卡片出现 **Update to vX.Y.Z**，点击只是**暂存更新**，按提示**重启 OK-WW** 后才替换；重启前可点 **Cancel pending change** 取消。
-- 删除插件同样是暂存操作，重启后才会真正移除。
-- OK-WW 启动时会先应用暂存变更；新版本初始化失败会自动回滚到上一版。
+- **v3.8.4 及更新（默认无 Plugins 页）**：到 Releases 下载新 zip，退出 OK-WW，解压覆盖 `working\ok_import\ok_team_workshop`，再启动。
+- **有 Plugins 页**：点 **Update to vX.Y.Z**，这是暂存更新，按提示重启 OK-WW 后才替换；重启前可点 **Cancel pending change** 取消。
+- **删除**：退出 OK-WW 后直接删除 `working\ok_import\ok_team_workshop`；有 Plugins 页时删除也需要重启生效。
+- 更新/重装不会清除已导入的队伍和角色代码（保存在 `working\configs\custom_teams` 等主程序配置里）。
 
 ## 使用
 
