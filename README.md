@@ -19,20 +19,33 @@
 
 ## 安装
 
+> **新版 OK-WW 的插件部署方式**
+>
+> - **新安装**：选完插件包后会直接加载，一般不需要重启。
+> - **更新 / 重装**：覆盖已安装的插件时会先进入暂存状态，卡片显示 `Update staged: vX.Y.Z. Restart to apply.`，**重启 OK-WW 后才真正替换**；重启前可点 **Cancel pending change** 取消。
+> - **删除插件**：同样暂存，重启后生效。
+> - 启动时会应用暂存的变更；如果新版本初始化失败，OK-WW 会自动回滚到上一版。
+
 **从 GitHub（推荐）**
 
 1. OK-WW → **Plugins** → **Add from GitHub**，填入：
    `https://github.com/Ryshcyn/ok-team-workshop`
 2. 选择 Release 里的 `ok-team-workshop-1.1.1.zip` 安装。
-3. 重启 OK-WW，左侧出现「队伍工坊」。
+3. 首次安装一般会直接出现左侧「队伍工坊」；如果没有出现，重启一次 OK-WW。覆盖已有安装时，按卡片提示重启生效。
 
 之后插件页会自动检查更新。
 
 **从 ZIP**
 
-到 [Releases](https://github.com/Ryshcyn/ok-team-workshop/releases) 下载 zip → **Add from ZIP** → 重启。本地 ZIP 安装不会自动更新。
+到 [Releases](https://github.com/Ryshcyn/ok-team-workshop/releases) 下载 zip → **Add from ZIP**。首次安装直接生效；覆盖安装按提示重启。本地 ZIP 安装不会记录 GitHub 来源，不会自动检查更新。
 
 不需要额外安装依赖。
+
+## 更新与删除
+
+- 有新版本时卡片出现 **Update to vX.Y.Z**，点击只是**暂存更新**，按提示**重启 OK-WW** 后才替换；重启前可点 **Cancel pending change** 取消。
+- 删除插件同样是暂存操作，重启后才会真正移除。
+- OK-WW 启动时会先应用暂存变更；新版本初始化失败会自动回滚到上一版。
 
 ## 使用
 
