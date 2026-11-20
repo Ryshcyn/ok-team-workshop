@@ -1,5 +1,11 @@
 # 更新记录
 
+## 1.1.2 — 2026-11-20
+
+- 新增 `TeamCodeCompat.py`：自动补齐 OK-WW v3.8.4+ 移除的 `src.char.CustomCharLoader`、`CharFactory.apply_team_char_classes` 和 `BaseCombatTask.load_chars()` 中的调用，并内置 `vendor/CustomCharLoader.py` 作为兜底；导入代码从每场战斗开始就生效，不再只对当前任务生效一次。
+- 新增 `WorkshopExtras.py`：队伍工坊左侧加入「更新插件」按钮，直接检查 GitHub Release、下载并把兼容层合并进新包，再交给主程序暂存，重启 OK-WW 生效；不再依赖 v3.8.4 起隐藏的 Plugins 页。
+- 打包流程与 README/NOTICE 同步更新，说明兼容层与插件内更新方式。
+
 ## 1.1.1 — 2026-11-17
 
 - README 增加工坊列表和角色代码编辑两张界面截图，并随插件包一起分发。

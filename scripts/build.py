@@ -8,8 +8,12 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ("WorkshopTab.py", "manifest.json", "README.md", "NOTICE.md", "LICENSE.txt", "CHANGELOG.md")
+FILES = (
+    "WorkshopTab.py", "TeamCodeCompat.py", "WorkshopExtras.py", "vendor/CustomCharLoader.py",
+    "manifest.json", "README.md", "NOTICE.md", "LOCAL_PATCH.md", "LICENSE.txt", "CHANGELOG.md",
+)
 IMAGES = ("docs/images/workshop-list.webp", "docs/images/team-code.webp")
+COMPAT_MARKERS = ("# >>> ok-workshop compatibility", "# >>> ok-workshop extras")
 
 
 def build(tag=None):
@@ -22,6 +26,9 @@ def build(tag=None):
     if manifest.get("custom_tabs") != [["WorkshopTab", "CharacterCodeTab"]] or manifest.get("tasks") != []:
         raise ValueError("Unexpected plugin entry points")
     ast.parse((ROOT / "WorkshopTab.py").read_text(encoding="utf-8"))
+    page = (ROOT / "WorkshopTab.py").read_text(encoding="utf-8")
+    if any(marker not in page for marker in COMPAT_MARKERS):
+        raise ValueError("WorkshopTab.py lost the ok-workshop compatibility sections")
     missing = [name for name in FILES + IMAGES if not (ROOT / name).is_file()]
     if missing:
         raise ValueError(f"Missing plugin files: {missing}")

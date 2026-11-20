@@ -1,6 +1,7 @@
 # Derived from ok-oldking/ok-wuthering-waves; see NOTICE.md and LICENSE.txt.
 # Modified 2026-11-04: standalone plugin page and GitHub raw data sources.
 import difflib
+import importlib.util
 import json
 import re
 import tempfile
@@ -31,6 +32,26 @@ from ok import Logger, og
 from ok.ui.qt.tasks.EditTaskTab import CodeEditor
 from ok.ui.qt.tasks.PythonHighlighter import PythonHighlighter
 from ok.ui.qt.widget.CustomTab import CustomTab
+
+# >>> ok-workshop compatibility (kept by the self-update merge)
+def _load_workshop_local_module(name):
+    """Execute a module that ships next to this page (see LOCAL_PATCH.md)."""
+    module_path = Path(__file__).with_name(name + '.py')
+    spec = importlib.util.spec_from_file_location('ok_team_workshop_' + name.lower(), module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+try:
+    TEAM_CODE_COMPAT = _load_workshop_local_module('TeamCodeCompat')
+    TEAM_CODE_COMPAT_STATUS = TEAM_CODE_COMPAT.install()
+except Exception as compat_error:  # a compatibility problem must never hide the page
+    TEAM_CODE_COMPAT = None
+    TEAM_CODE_COMPAT_STATUS = None
+    Logger.get_logger(__name__).error('team code compatibility install failed', compat_error)
+# <<< ok-workshop compatibility
+
 from src.char.CharFactory import apply_team_char_classes, char_dict
 from src.char.CustomCharLoader import (
     TEAM_CODE_MODE_BUILTIN, TEAM_CODE_MODE_IMPORT, TEAM_CODE_STATE_NONE,
@@ -1739,3 +1760,18 @@ class CharacterCodeTab(CustomTab):
         if self._has_unsaved_changes():
             self._confirm_discard_changes()
         super().hideEvent(event)
+
+# >>> ok-workshop extras (kept by the self-update merge)
+def _install_workshop_extras():
+    if TEAM_CODE_COMPAT is None:
+        return
+    tab_class = TEAM_CODE_COMPAT.find_tab_class(globals())
+    if tab_class is not None:
+        TEAM_CODE_COMPAT.load_sibling('WorkshopExtras').install(tab_class)
+
+
+try:
+    _install_workshop_extras()
+except Exception as extras_error:  # the page still works without the update button
+    Logger.get_logger(__name__).error('workshop extras install failed', extras_error)
+# <<< ok-workshop extras
