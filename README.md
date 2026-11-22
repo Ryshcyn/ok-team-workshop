@@ -32,7 +32,7 @@
 >
 > **v3.8.4+ 兼容性（1.1.2 起自动处理）**：v3.8.4 移除了 `src/char/CustomCharLoader.py`、`CharFactory.apply_team_char_classes`，以及 `BaseCombatTask.load_chars()` 里应用导入代码的那一行。1.1.2 起插件内置 `TeamCodeCompat.py` 和 `vendor/CustomCharLoader.py`：宿主缺哪一部分就补哪一部分，并在读完队伍后应用导入代码，**不需要再恢复 `working\src\char\` 下的文件，也不用为了兼容退回 v3.8.3**。升级 OK-WW 后兼容层自动跟随，日志里会打印 `ok-workshop compatibility: {...}`。
 
-**从 GitHub（推荐，需 Plugins 页）**
+**从 GitHub（需 Plugins 页）**
 
 1. OK-WW → **Plugins** → **Add from GitHub**，填入：
    `https://github.com/Ryshcyn/ok-team-workshop`
