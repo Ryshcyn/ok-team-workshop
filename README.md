@@ -45,13 +45,14 @@
 
 到 [Releases](https://github.com/Ryshcyn/ok-team-workshop/releases) 下载 zip → **Add from ZIP**。首次安装直接生效；覆盖安装按提示重启。本地 ZIP 安装不会记录 GitHub 来源，不会自动检查更新。
 
-**手动安装（v3.8.4 及更新，无需 Plugins 页）**
+**手动安装（v3.8.4 + 及更新，无需 Plugins 页 最新版推荐）**
 
 1. 到 **Releases** 下载 `ok-team-workshop-<版本>.zip`。
 2. 完全退出 OK-WW。
-3. 备份 `...\working\ok_import\ok_team_workshop`；首次安装则新建该目录。
+3. 找到目录`ok-ww\data\apps\ok-ww\working\ok_import\ok_team_workshop`；首次安装则新建该目录。
 4. 把 zip 解压到该目录，确认 `manifest.json` 和 `WorkshopTab.py` 在同一层。
 5. 启动 OK-WW，左侧应出现「队伍工坊」。
+6. 后续更新在工坊页面即可
 
 不需要额外安装依赖。
 
